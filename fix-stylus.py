@@ -105,11 +105,37 @@ def update_libwacom_db() -> None:
 
 
 def main():
+    board = get_board()
+    stylus = get_stylus()
+
+    tablet_file = render_tablet_file(stylus)
+    quirk_file = render_quirk(board)
+
+    print("/etc/libwacom/google-{board}.tablet\n")
+    print(tablet_file)
+
+    print("\n\n")
+
+    print("/etc/libinput/local-overrides.quirks\n")
+    print(quirk_file)
+
+    print("\n\n")
+
+    while True:
+        inp = input("Do You Want To Continue? y/N: ").lower()
+        
+        if inp == "n":
+            terminate("User Interrupted")
+
+        if inp == "y":
+            break
+
+
     create_folder("/etc/libwacom/")
     create_folder("/etc/libinput/")
 
-    create_file(f"/etc/libwacom/google-{get_board()}.tablet", render_tablet_file(get_stylus()),True)
-    create_file(f"/etc/libinput/local-overrides.quirks", render_quirk(get_board()),True)
+    create_file(f"/etc/libwacom/google-{board}.tablet",tablet_file,True)
+    create_file(f"/etc/libinput/local-overrides.quirks",quirk_file ,True)
 
 
 if __name__ == "__main__":
