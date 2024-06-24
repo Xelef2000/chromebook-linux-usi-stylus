@@ -3,6 +3,7 @@
 import argparse
 import configparser
 import sys
+import os
 import pyudev
 from pathlib import Path
 
@@ -80,7 +81,6 @@ def get_stylus() -> str:
             name = device.get("NAME", None)
             if name is None:
                 name = next((p.get("NAME") for p in device.ancestors if p.get("NAME")),None,)
-            
             if name is not None:
                 return name.replace("\"","")
 
@@ -88,15 +88,28 @@ def get_stylus() -> str:
     terminate("No Stylus found")
 
 
+def create_folder(path:str) -> None:
+    if not os.path.exists(path):
+        os.makedirs(path)
 
+def create_file(path:str, content:str, override:bool=False) -> None:
+    if os.path.exists(path) or override:
+        with open(path, 'w') as f:
+            f.write(content)
+
+
+def update_libwacom_db() -> None:
+    os.system("sudo libwacom-update-db")  
 
 
 
 
 def main():
-    print(render_tablet_file(get_stylus()))
-    print(render_quirk(get_board()))
+    create_folder("/etc/libwacom/")
+    create_folder("/etc/libinput/")
 
+    create_file(f"/etc/libwacom/google-{get_board()}.tablet", render_tablet_file(get_stylus()),True)
+    create_file(f"/etc/libinput/local-overrides.quirks", render_quirk(get_board()),True)
 
 
 if __name__ == "__main__":
